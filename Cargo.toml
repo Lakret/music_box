@@ -11,3 +11,11 @@ dotenv = "0.13.0"
 serde = "^1.0"
 bincode = "^1.3"
 rspotify = {version = "^0.10", features=["blocking"]}
+
+[lib]
+name = "music_box"
+path = "src/lib.rs"
+
+[[bin]]
+name = "music_box"
+path = "src/main.rs"
