@@ -1,6 +1,11 @@
 # App
 .env
 .token
+.spotify_token_cache.json
+music/**
 
 # Rust
 /target
+
+# macOS
+.DS_Store

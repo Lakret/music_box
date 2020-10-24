@@ -1,4 +1,4 @@
-pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
+pub mod model;
+pub use model::*;
 
 mod spotify;
-pub use spotify::authenticate as authenticate_spotify;

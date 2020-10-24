@@ -5,6 +5,7 @@ use std::fs;
 use dotenv::dotenv;
 use rspotify::blocking::client::Spotify;
 use rspotify::blocking::oauth2::{SpotifyClientCredentials, SpotifyOAuth, TokenInfo};
+use rspotify::model::artist::FullArtist;
 
 use crate::Result;
 
@@ -51,6 +52,25 @@ pub fn authenticate() -> Result<Spotify> {
     .build();
 
   Ok(spotify)
+}
+
+/// Returns all followed artists for the current user.
+pub fn all_followed_artists(spotify: &Spotify) -> Result<Vec<FullArtist>> {
+  let mut all_artists: Vec<FullArtist> = vec![];
+  let mut next = None;
+
+  loop {
+    let mut artists = spotify.current_user_followed_artists(Some(50), next)?;
+
+    next = artists.artists.items.last().map(|artist| artist.id.clone());
+    all_artists.append(&mut artists.artists.items);
+
+    if next.is_none() {
+      break;
+    };
+  }
+
+  Ok(all_artists)
 }
 
 // ------------------------
