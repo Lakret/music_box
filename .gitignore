@@ -6,6 +6,10 @@ music/**
 
 # Rust
 /target
+/**/target
 
 # macOS
 .DS_Store
+
+# JS
+/**/node_modules/
