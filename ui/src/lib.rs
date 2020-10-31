@@ -1,4 +1,5 @@
 use wasm_bindgen::prelude::*;
+use web_sys::Window;
 use yew::prelude::*;
 
 struct Model {
@@ -8,6 +9,12 @@ struct Model {
 
 enum Msg {
   AddOne,
+  GetState,
+}
+
+#[wasm_bindgen(inline_js = "export function send_init() { return external.invoke('init'); }")]
+extern "C" {
+  fn send_init() -> String;
 }
 
 impl Component for Model {
@@ -20,6 +27,10 @@ impl Component for Model {
   fn update(&mut self, msg: Self::Message) -> ShouldRender {
     match msg {
       Msg::AddOne => self.value += 1,
+      Msg::GetState => {
+        unsafe { send_init() };
+        // TODO: synchronize state between frontend and backend
+      }
     }
     true
   }
@@ -34,7 +45,8 @@ impl Component for Model {
   fn view(&self) -> Html {
     html! {
         <div>
-            <button onclick=self.link.callback(|_| Msg::AddOne)>{ "Add one" }</button>
+            <button onclick=self.link.callback(|_| Msg::GetState)>{ "Get state" }</button>
+            <button onclick=self.link.callback(|_| Msg::AddOne)>{ "Minus one" }</button>
             <p>{ self.value }</p>
         </div>
     }

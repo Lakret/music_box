@@ -1,3 +1,4 @@
+use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
 use crate::spotify;
@@ -69,7 +70,7 @@ impl MusicSource {
   }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Artist {
   pub name: String,
   pub genres: Vec<String>,

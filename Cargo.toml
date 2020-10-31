@@ -1,5 +1,6 @@
 [workspace]
 members = [
   "music_box",
-  "ui"
+  "ui",
+  "desktop"
 ]
