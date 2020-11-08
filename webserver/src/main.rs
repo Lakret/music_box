@@ -1,13 +1,10 @@
 use actix_files::{Files, NamedFile};
 use actix_web::middleware::Logger;
-use actix_web::{get, App, HttpServer, Result};
+use actix_web::{get, App, HttpResponse, HttpServer, Result};
 use listenfd::ListenFd;
+use log::error;
+use music_box::{MusicLibrary, MusicSource};
 use std::path::PathBuf;
-
-// #[get("/")]
-// async fn hello() -> impl Responder {
-//   HttpResponse::Ok().body("Hello world!")
-// }
 
 #[get("/")]
 async fn index() -> Result<NamedFile> {
@@ -15,14 +12,37 @@ async fn index() -> Result<NamedFile> {
   Ok(NamedFile::open(path)?)
 }
 
+#[get("/api/artists")]
+async fn artists() -> HttpResponse {
+  let data = r#"{"artists": ["Meshuggah"]}"#.to_string();
+
+  HttpResponse::Ok()
+    .content_type("application/json")
+    .body(data)
+}
+
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
   env_logger::init();
   let mut listenfd = ListenFd::from_env();
 
+  // TODO: need to use async HTTP client in music_box
+  // let spotify = MusicSource::new_spotify_client().map_err(|err| {
+  //   error!(
+  //     "Got error while trying to initialize Spotify source: {}",
+  //     err.to_string()
+  //   );
+  //   std::io::Error::new(std::io::ErrorKind::Other, err.to_string())
+  // })?;
+  // let library = MusicLibrary::new(vec![spotify]);
+  // println!("My artists: {:#?}", library.get_artists());
+
   let mut server = HttpServer::new(|| {
     App::new()
       .wrap(Logger::default())
+      // API endpoints
+      .service(artists)
+      // Static assets & main page
       .service(index)
       .service(Files::new("/", "./webserver/assets/dist"))
   })

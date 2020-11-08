@@ -3234,6 +3234,8 @@ dependencies = [
  "actix-web",
  "env_logger 0.8.1",
  "listenfd",
+ "log",
+ "music_box",
 ]
 
 [[package]]
