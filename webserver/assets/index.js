@@ -1,9 +1,10 @@
 import React from "react";
 import ReactDOM from "react-dom";
+import "./styles/style.scss";
 
 class HelloMessage extends React.Component {
   render() {
-    return <div>Hello {this.props.name}</div>;
+    return <h1>Hello {this.props.name}</h1>;
   }
 }
 
