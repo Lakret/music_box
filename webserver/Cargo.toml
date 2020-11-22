@@ -3,6 +3,7 @@ name = "webserver"
 version = "0.1.0"
 authors = ["Lakret <Rakuretu@gmail.com>"]
 edition = "2018"
+description = "Audio Player & Music Library"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -13,3 +14,13 @@ actix-files = "^ 0.4"
 log = "*"
 env_logger = "^ 0.8"
 listenfd = "0.3"
+actix-web-static-files = "^ 3.0"
+
+[build-dependencies]
+actix-web-static-files = "^ 3.0"
+
+[package.metadata.bundle]
+name = "MusicBoxServer"
+identifier = "net.lakret.music_box_server"
+version = "0.1.0"
+resources = ["assets"]

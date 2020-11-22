@@ -1,16 +1,16 @@
 use actix_files::{Files, NamedFile};
 use actix_web::middleware::Logger;
 use actix_web::{get, App, HttpResponse, HttpServer, Result};
+use actix_web_static_files;
 use listenfd::ListenFd;
 use log::error;
-use music_box::{MusicLibrary, MusicSource};
-use std::path::PathBuf;
 
-#[get("/")]
-async fn index() -> Result<NamedFile> {
-  let path: PathBuf = "./webserver/assets/dist/index.html".into();
-  Ok(NamedFile::open(path)?)
-}
+use std::collections::HashMap;
+
+use music_box::{MusicLibrary, MusicSource};
+
+// for bundling assents inside the binary with `actix_web_static_files`.
+include!(concat!(env!("OUT_DIR"), "/generated.rs"));
 
 #[get("/api/artists")]
 async fn artists() -> HttpResponse {
@@ -38,13 +38,19 @@ async fn main() -> std::io::Result<()> {
   // println!("My artists: {:#?}", library.get_artists());
 
   let mut server = HttpServer::new(|| {
+    let generated = generate();
+
     App::new()
       .wrap(Logger::default())
       // API endpoints
       .service(artists)
-      // Static assets & main page
-      .service(index)
-      .service(Files::new("/", "./webserver/assets/dist"))
+      // Auto-reloaded dev static assets & main page. You can access them
+      // under `http://localhost:8000/dev`.
+      // FIXME: The `index.html` file reloads properly,
+      // but css and js changes are not yet auto-reloaded.
+      .service(Files::new("/dev", "assets/dist/").index_file("index.html"))
+      // Bundled static assets & main page (via actix_web_static_files)
+      .service(actix_web_static_files::ResourceFiles::new("/", generated))
   })
   .shutdown_timeout(5);
 
