@@ -2,24 +2,62 @@ use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
 use crate::spotify;
-use rspotify::blocking::client::Spotify;
+use rspotify::client::Spotify;
 
 pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
 pub struct MusicLibrary {
-  sources: Vec<MusicSource>,
+  spotify: Option<Spotify>,
+  dirs: Vec<LocalDir>,
+}
+
+#[derive(Debug, Clone)]
+pub struct LocalDir {
+  name: String,
+  path: PathBuf,
 }
 
 impl MusicLibrary {
-  pub fn new(sources: Vec<MusicSource>) -> MusicLibrary {
-    MusicLibrary { sources }
+  pub fn new() -> MusicLibrary {
+    MusicLibrary {
+      spotify: None,
+      dirs: vec![],
+    }
+  }
+
+  pub fn set_spotify(&mut self, spotify: Spotify) -> &mut MusicLibrary {
+    self.spotify = Some(spotify);
+    self
+  }
+
+  pub fn add_dir(&mut self, name: &str, path: &str) -> &mut MusicLibrary {
+    let local_dir = LocalDir {
+      name: name.to_string(),
+      path: PathBuf::from(path),
+    };
+    self.dirs.push(local_dir);
+    self
+  }
+
+  pub fn sources(&self) -> Vec<Box<dyn MusicSource>> {
+    let mut sources: Vec<Box<dyn MusicSource>> = vec![];
+
+    for spotify in self.spotify.clone() {
+      sources.push(Box::new(spotify.clone()));
+    }
+
+    for dir in self.dirs.clone() {
+      sources.push(Box::new(dir.clone()));
+    }
+
+    sources
   }
 }
 
 impl MusicLibrary {
   pub fn get_artists(&self) -> Result<Vec<Artist>> {
     let artists = self
-      .sources
+      .sources()
       .iter()
       .flat_map(|source| match source.get_artists() {
         Ok(artists) => artists,
@@ -31,42 +69,30 @@ impl MusicLibrary {
   }
 }
 
-pub enum MusicSource {
-  SpotifyClient(Spotify),
-  LocalDirectory { name: String, path: PathBuf },
+pub trait MusicSource {
+  fn get_artists(&self) -> Result<Vec<Artist>>;
 }
 
-use MusicSource::*;
-
-impl MusicSource {
-  pub fn new_spotify_client() -> Result<MusicSource> {
-    let client = spotify::authenticate()?;
-    Ok(SpotifyClient(client))
+impl MusicSource for LocalDir {
+  fn get_artists(&self) -> Result<Vec<Artist>> {
+    // TODO:
+    Ok(vec![])
   }
+}
 
-  pub fn new_local_dir_client(name: &str, path: &str) -> Result<MusicSource> {
-    let name = name.to_string();
-    let path = PathBuf::from(path);
+impl MusicSource for Spotify {
+  fn get_artists(&self) -> Result<Vec<Artist>> {
+    // TODO: limit and iterating
+    let spotify_artists = self.current_user_followed_artists(1000, None)?;
 
-    Ok(LocalDirectory { name, path })
-  }
+    let artists = spotify_artists
+      .artists
+      .items
+      .into_iter()
+      .map(|a| a.into())
+      .collect::<Vec<Artist>>();
 
-  pub fn get_artists(&self) -> Result<Vec<Artist>> {
-    match self {
-      SpotifyClient(client) => {
-        let spotify_artists = spotify::all_followed_artists(&client)?;
-        let artists = spotify_artists
-          .into_iter()
-          .map(|a| a.into())
-          .collect::<Vec<Artist>>();
-
-        Ok(artists)
-      }
-      LocalDirectory { .. } => {
-        // TODO:
-        Ok(vec![])
-      }
-    }
+    Ok(artists)
   }
 }
 

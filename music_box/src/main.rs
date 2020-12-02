@@ -21,10 +21,11 @@ where
 }
 
 fn main() -> Result<()> {
-  let spotify = MusicSource::new_spotify_client()?;
-  let local_dir = MusicSource::new_local_dir_client("Test Dir", "music")?;
+  let spotify = music_box::spotify::new();
 
-  let library = MusicLibrary::new(vec![spotify, local_dir]);
+  let mut library = MusicLibrary::new();
+  library.set_spotify(spotify).add_dir("Test Dir", "music");
+
   // TODO: fetch local artists too
   println!("My artists: {:#?}", library.get_artists());
 
